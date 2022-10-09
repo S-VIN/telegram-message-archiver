@@ -1,16 +1,13 @@
 import pyrogram.enums.chat_type
 from pyrogram import Client, filters
 import sorm
-import asyncio
-import time
+import settings
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 bot = pyrogram.enums.chat_type.ChatType.BOT
-api_id = 9387204
-api_hash = "*"
-app = Client("user-bot", api_id=api_id, api_hash=api_hash)
-
+app = Client("user-bot", api_id=settings.API_ID, api_hash=settings.API_HASH)
+db = sorm.Db(database=settings.DB_NAME, user=settings.USER, password=settings.PASSWORD, host=settings.HOST, port=settings.PORT)
 
 
 @app.on_message(filters.chat)
