@@ -1,40 +1,34 @@
 import pyrogram.enums.chat_type
 from pyrogram import Client, filters
 import sorm
+import asyncio
+import time
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 
 bot = pyrogram.enums.chat_type.ChatType.BOT
-
 api_id = 9387204
-api_hash = "27324c79706b8e8c0f9819f9646076e9"
-
+api_hash = "*"
 app = Client("user-bot", api_id=api_id, api_hash=api_hash)
 
-db = sorm.Db(database="telegram_my_messages", user='postgres', password='3228', host='127.0.0.1', port='5432')
 
 
-
-
-
-@app.on_message(filters.text & filters.private)
+@app.on_message(filters.chat)
 async def archive(client, message):
     if db.is_new_user(message.from_user):
-        print('new user')
-        db.add_user_to_db(message.from_user)
-    db.add_message_to_db(message)
+        db.add_user(message.from_user)
+    db.add_message(message)
+
+async def update_unread_messages():
     async for dialog in app.get_dialogs():
         count_of_unread_messages = dialog.unread_messages_count
-        messages = await client.get_messages([dialog.chat.id])
-        for i in range(count_of_unread_messages):
-            print(messages[i])
+        if count_of_unread_messages > 0:
+            messages = app.get_chat_history(dialog.chat.id, count_of_unread_messages)
+            async for message in messages:
+                db.add_unread_message(message)
 
+scheduler = AsyncIOScheduler()
+scheduler.add_job(update_unread_messages, "interval", seconds=5)
 
-
-async def main():
-    async with app:
-        # "me" refers to your own chat (Saved Messages)
-        async for message in app.get_chat_history("me"):
-            print(message)
-
-
-
+scheduler.start()
 app.run()

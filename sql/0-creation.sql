@@ -21,7 +21,7 @@ BEGIN
     );
 
     CREATE TABLE  IF NOT EXISTS unread_messages (
-        message_id BIGINT REFERENCES messages(id)
+        message_id BIGINT REFERENCES messages(id) UNIQUE
     );
 
     CREATE TABLE IF NOT EXISTS last_used_script (
