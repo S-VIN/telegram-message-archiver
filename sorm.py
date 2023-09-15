@@ -1,20 +1,25 @@
 import psycopg2
 import datetime
+
+import settings
 import utils
 
-import pyrogram.enums.chat_type
-
 chat_type = utils.EnumToIntConverter()
+
 
 class MyMessage():
     text = ''
     author = ''
 
 
-class Db:
+class Db(object):
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Singleton, cls).__new__(cls)
+        return cls.instance
     def __init__(self, database, user, password, host, port):
         self.connection = psycopg2.connect(
-            database="telegram_my_messages", user='postgres', password='3228', host='127.0.0.1', port='5432'
+            database=settings.DB_NAME, user=set, password='3228', host='127.0.0.1', port='5432'
         )
 
         self.connection.autocommit = True
@@ -30,7 +35,6 @@ class Db:
             result += ' '
             result += row[1]
         return result
-
 
     def add_message(self, message):
         insert_message = (
@@ -52,7 +56,6 @@ class Db:
         else:
             return True
 
-
     def add_user(self, user):
         insert_message = (
             user.id,
@@ -65,7 +68,6 @@ class Db:
             'INSERT INTO users (id, first_name, second_name, user_name, is_bot, is_in_contacts) VALUES (%s,%s,%s,%s,%s,%s)',
             insert_message)
 
-
     def add_unread_message(self, message):
         try:
             self.cursor.execute('INSERT INTO unread_messages (message_id) VALUES (%s)', [message.id])
@@ -73,7 +75,6 @@ class Db:
             ...
         except psycopg2.errors.ForeignKeyViolation:
             ...
-
 
     def get_unread_messages(self):
         self.cursor.execute(

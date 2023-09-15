@@ -1,6 +1,6 @@
 DO $$
 BEGIN
-    -- CREATE DATABASE telegram_my_messages;
+    -- CREATE DATABASE archiever_db;
 
     CREATE TABLE IF NOT EXISTS users (
       id BIGINT PRIMARY KEY,

@@ -1,31 +1,48 @@
-import pyrogram.enums.chat_type
-from pyrogram import Client, filters
 import sorm
 import settings
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from telethon import TelegramClient
+
+import psycopg2
+conn = psycopg2.connect(dbname=settings.DB_NAME, user=settings.USER, password=settings.PASSWORD, host=settings.HOST)
+cursor = conn.cursor()
+
+client = TelegramClient('lib_session', settings.API_ID, settings.API_HASH)
+
+async def main():
+    # Getting information about yourself
+    me = await client.get_me()
 
 
-bot = pyrogram.enums.chat_type.ChatType.BOT
-app = Client("user-bot", api_id=settings.API_ID, api_hash=settings.API_HASH)
-db = sorm.Db(database=settings.DB_NAME, user=settings.USER, password=settings.PASSWORD, host=settings.HOST, port=settings.PORT)
+    # "me" is a user object. You can pretty-print
+    # any Telegram object with the "stringify" method:
+    print(me.stringify())
+
+    # When you print something, you see a representation of it.
+    # You can access all attributes of Telegram objects with
+    # the dot operator. For example, to get the username:
+    username = me.username
+    print(username)
+    print(me.phone)
+
+    # You can print all the dialogs/conversations that you are part of:
+    async for dialog in client.iter_dialogs():
+        if dialog.id == 533844145:
+            print(dialog)
+            sorm.Db.add_user(dialog)
+
+            async for message in client.iter_messages(dialog):
+                print(message.id, message.text)
+
+                sorm.Db.add_message()
 
 
-@app.on_message(filters.chat)
-async def archive(client, message):
-    if db.is_new_user(message.from_user):
-        db.add_user(message.from_user)
-    db.add_message(message)
 
-async def update_unread_messages():
-    async for dialog in app.get_dialogs():
-        count_of_unread_messages = dialog.unread_messages_count
-        if count_of_unread_messages > 0:
-            messages = app.get_chat_history(dialog.chat.id, count_of_unread_messages)
-            async for message in messages:
-                db.add_unread_message(message)
 
-scheduler = AsyncIOScheduler()
-scheduler.add_job(update_unread_messages, "interval", seconds=5)
+    # You can print the message history of any chat:
+    async for message in client.iter_messages('533844145'):
+        print(message.id, message.text)
 
-scheduler.start()
-app.run()
+
+
+with client:
+    client.loop.run_until_complete(main())
