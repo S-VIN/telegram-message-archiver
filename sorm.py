@@ -12,14 +12,18 @@ class MyMessage():
     author = ''
 
 
-class Db(object):
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(Singleton, cls).__new__(cls)
-        return cls.instance
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class Db(metaclass=Singleton):
+
     def __init__(self, database, user, password, host, port):
         self.connection = psycopg2.connect(
-            database=settings.DB_NAME, user=set, password='3228', host='127.0.0.1', port='5432'
+            database=database, user=user, password=password, host=host, port=port
         )
 
         self.connection.autocommit = True
@@ -62,8 +66,8 @@ class Db(object):
             user.first_name,
             user.last_name,
             user.username,
-            user.is_bot,
-            user.is_contact)
+            user.bot,
+            user.contact)
         self.cursor.execute(
             'INSERT INTO users (id, first_name, second_name, user_name, is_bot, is_in_contacts) VALUES (%s,%s,%s,%s,%s,%s)',
             insert_message)
