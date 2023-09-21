@@ -32,21 +32,38 @@ async def main():
     # print(username)
     # print(me.phone)
 
-    result = await client(functions.contacts.GetContactsRequest(
-        hash=-12398745604826
-    ))
+    i = 0
+    async for dialog in client.iter_dialogs():
+        i += 1
+        if i == 10:
+            break
+
+        print(dialog)
+        j = 0
 
 
-    for user in result.users:
-        print(user)
-        db.add_user(user)
+        try:
+            if not dialog.entity.contact:
+                continue
+        except(AttributeError):
+            continue
 
+        async for message in client.iter_messages(dialog):
+            print(message.id, message.text)
+            db.add_message(message)
 
-
-    # async for message in client.iter_messages(dialog):
-    #     print(message.id, message.text)
+    # result = await client(functions.contacts.GetContactsRequest(
+    #     hash=-12398745604826
+    # ))
     #
-    #     sorm.Db.add_message()
+    #
+    # for user in result.users:
+    #     print(user)
+    #     db.add_user(user)
+
+
+
+
 
 
 

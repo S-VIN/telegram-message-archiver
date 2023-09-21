@@ -45,8 +45,9 @@ class Db(metaclass=Singleton):
             message.id,
             message.text,
             datetime.datetime.timestamp(message.date) * 1000,
-            message.from_user.id,
-            chat_type.enum_to_int(message.chat.type.value),
+            message.peer_id.user_id,
+            # chat_type.enum_to_int(message.chat.type.value),
+            0,
             1)
         self.cursor.execute(
             'INSERT INTO messages (id, text, datetime, user_id, chat_type, media_type) VALUES (%s,%s,%s,%s,%s,%s)',
