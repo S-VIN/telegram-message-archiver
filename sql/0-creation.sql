@@ -14,8 +14,17 @@ BEGIN
     CREATE TABLE IF NOT EXISTS messages (
      id BIGINT PRIMARY KEY,
      text TEXT,
-     datetime BIGINT NOT NULL,
-     user_id BIGINT REFERENCES users(id),
+     datetime TIMESTAMP NOT NULL,
+     peer_id BIGINT REFERENCES users(id),
+     chat_type INTEGER NOT NULL,
+     media_type INTEGER DEFAULT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS peers (
+     id BIGINT PRIMARY KEY,
+     type INT NOT NULL,
+     datetime TIMESTAMP NOT NULL,
+     peer_id BIGINT REFERENCES users(id),
      chat_type INTEGER NOT NULL,
      media_type INTEGER DEFAULT NULL
     );
