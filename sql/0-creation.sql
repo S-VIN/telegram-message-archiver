@@ -23,10 +23,7 @@ BEGIN
     CREATE TABLE IF NOT EXISTS peers (
      id BIGINT PRIMARY KEY,
      type INT NOT NULL,
-     datetime TIMESTAMP NOT NULL,
-     peer_id BIGINT REFERENCES users(id),
-     chat_type INTEGER NOT NULL,
-     media_type INTEGER DEFAULT NULL
+     name TEXT NOT NULL
     );
 
     CREATE TABLE  IF NOT EXISTS unread_messages (

@@ -1,1 +1,2 @@
 psycopg2~=2.9.7
+Telethon~=1.30.3

@@ -1,6 +1,8 @@
 import psycopg2
 import datetime
 
+from telethon import types
+
 import settings
 import utils
 
@@ -41,6 +43,11 @@ class Db(metaclass=Singleton):
         return result
 
     def add_message(self, message):
+        if type(message.peer_id) is types.PeerUser:
+            if self.is_new_user(message.peer_id):
+                self.add_user()
+
+
         insert_message = (
             message.id,
             message.text,
@@ -61,6 +68,40 @@ class Db(metaclass=Singleton):
         else:
             return True
 
+
+
+    def add_peer(self, peer):
+        insert_message = (
+            peer.id,
+            peer.type,
+            peer.name
+        )
+        self.cursor.execute(
+            'INSERT INTO peers (id, type, name) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING',
+            insert_message)
+
+
+# Peer
+    def get_peer_by_id(self, peer_id):
+        self.cursor.execute(
+            'SELECT * FROM peers')
+        message_records = self.cursor.fetchall()
+        result = list()
+        if len(message_records) == 0:
+            return None
+        if len(message_records) != 1:
+            assert('peers with same id')
+            return None
+
+        first_record = message_records[0]
+        peer = None
+        peer.id = first_record[0]
+        peer.type = first_record[1]
+        peer.name = first_record[2]
+        return peer
+
+
+# User
     def add_user(self, user):
         insert_message = (
             user.id,
