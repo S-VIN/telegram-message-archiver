@@ -3,6 +3,7 @@ import time
 import sorm
 import settings
 import telegram
+from telethon import functions
 
 from enum import Enum
 
@@ -35,7 +36,7 @@ async def get_dialogs(count=None):
 async def sync_messages_from_dialog(dialog, count=10):
     async for message in tg.client.iter_messages(dialog):
         print(message)
-        await tg.get_peer_by_id(message.peer_id)
+        print(await tg.get_peer_by_id(message.peer_id))
         count -= 1
         if count <= 0:
             return
@@ -43,7 +44,7 @@ async def sync_messages_from_dialog(dialog, count=10):
 
 
 async def main():
-    await get_dialogs(5)
+    await get_dialogs()
 
     # result = await client(functions.channels.List(
     #     hash=-12398745604826
