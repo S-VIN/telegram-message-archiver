@@ -4,6 +4,7 @@ import datetime
 from telethon import types
 
 import settings
+import telegram
 import utils
 
 chat_type = utils.EnumToIntConverter()
@@ -61,19 +62,17 @@ class Db(metaclass=Singleton):
             insert_message)
 
     def is_new_user(self, user):
-        self.cursor.execute('SELECT * FROM users WHERE id = %s', [user.id])
+        self.cursor.execute('SELECT * FROM users WHERE id = (%s)', [user.id])
         user_records = self.cursor.fetchall()
         if len(user_records) == 1:
             return False
         else:
             return True
 
-
-
     def add_peer(self, peer):
         insert_message = (
             peer.id,
-            peer.type,
+            peer.type.value,
             peer.name
         )
         self.cursor.execute(
@@ -82,9 +81,9 @@ class Db(metaclass=Singleton):
 
 
 # Peer
-    def get_peer_by_id(self, peer_id):
+    async def get_peer_by_id(self, peer_id):
         self.cursor.execute(
-            'SELECT * FROM peers')
+            'SELECT * FROM peers WHERE id=%s', [peer_id])
         message_records = self.cursor.fetchall()
         result = list()
         if len(message_records) == 0:
@@ -94,10 +93,7 @@ class Db(metaclass=Singleton):
             return None
 
         first_record = message_records[0]
-        peer = None
-        peer.id = first_record[0]
-        peer.type = first_record[1]
-        peer.name = first_record[2]
+        peer = telegram.Peer(first_record[0], first_record[1], first_record[2])
         return peer
 
 

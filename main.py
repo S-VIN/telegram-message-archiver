@@ -4,6 +4,8 @@ import sorm
 import settings
 import telegram
 from telethon import functions
+from telethon import types
+
 
 from enum import Enum
 
@@ -27,19 +29,33 @@ async def get_dialogs(count=None):
 
         print()
         print()
-        print(dialog)
-        await sync_messages_from_dialog(dialog, 3)
+        await sync_messages_from_dialog(dialog, 1)
 
 
 
 
 async def sync_messages_from_dialog(dialog, count=10):
     async for message in tg.client.iter_messages(dialog):
-        print(message)
-        print(await tg.get_peer_by_id(message.peer_id))
+        print(message.peer_id)
+        peer = telegram.Peer(0, Peer.USER, '')
+
+        if type(message.peer_id) is types.PeerChannel:
+            peer = await db.get_peer_by_id(message.peer_id.channel_id)
+        if type(message.peer_id) is types.PeerUser:
+            peer = await db.get_peer_by_id(message.peer_id.user_id)
+        if type(message.peer_id) is types.PeerChat:
+            peer = await db.get_peer_by_id(message.peer_id.chat_id)
+
+        if peer is None or peer.id == 0:
+            peer = await tg.get_peer_by_id(message.peer_id)
+            db.add_peer(peer)
+            print('peer was added to db: ', peer)
+        else:
+            print('peer was in db: ', peer)
         count -= 1
         if count <= 0:
             return
+
         # db.add_message(message)
 
 
