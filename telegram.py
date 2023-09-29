@@ -3,6 +3,7 @@ from telethon import functions
 from telethon import utils
 from telethon import types
 
+
 from enum import Enum
 
 
@@ -29,23 +30,22 @@ class Peer():
         return str('Peer(' + str(self.id) + ', ' + str(self.type) + ', ' + self.name + ')')
 
 class Message():
-    def __init__(self, id, text, datetime, user_id, chat_type, media_type):
+    def __init__(self, id, text, datetime, peer_id, chat_type):
         self.id = id
         self.text = text
         self.datetime = datetime
-        self.user_id = user_id
+        self.peer_id = peer_id
         self.chat_type = chat_type
-        self.media_type = media_type
 
 
 class User():
-    def __init(self, id, first_name, second_name, user_name, is_bot, is_in_contacts):
+    def __init__(self, id, first_name, last_name, username, bot, contact):
         self.id = id
         self.first_name = first_name
-        self.second_name = second_name
-        self.user_name = user_name
-        self.is_bot = is_bot
-        self.is_in_contacts = is_in_contacts
+        self.last_name = last_name
+        self.username = username
+        self.bot = bot
+        self.contact = contact
 
 class Singleton(type):
     _instances = {}
@@ -85,3 +85,6 @@ class Telegram(metaclass=Singleton):
             print(result.chats[0].title)
             return Peer(result.chats[0].id, PeerType.CHAT, result.chats[0].title)
 
+    async def get_user_by_id(self, user_id):
+        user = await self.client(functions.users.GetFullUserRequest(user_id))
+        return user

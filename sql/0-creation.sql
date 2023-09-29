@@ -5,19 +5,18 @@ BEGIN
     CREATE TABLE IF NOT EXISTS users (
       id BIGINT PRIMARY KEY,
       first_name TEXT,
-      second_name TEXT,
-      user_name TEXT,
-      is_bot BOOL DEFAULT FALSE,
-      is_in_contacts BOOL DEFAULT TRUE
+      last_name TEXT,
+      username TEXT,
+      bot BOOL DEFAULT FALSE,
+      contact BOOL DEFAULT TRUE
     );
 
     CREATE TABLE IF NOT EXISTS messages (
      id BIGINT PRIMARY KEY,
      text TEXT,
      datetime TIMESTAMP NOT NULL,
-     peer_id BIGINT REFERENCES users(id),
-     chat_type INTEGER NOT NULL,
-     media_type INTEGER DEFAULT NULL
+     peer_id BIGINT REFERENCES peers(id),
+     chat_type INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS peers (

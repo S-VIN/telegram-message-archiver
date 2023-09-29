@@ -17,7 +17,7 @@
 # await sync_messages_from_dialog(dialog)
 
 
-# result = await client(functions.contacts.GetContactsRequest(
+# result = await client(functions.contact.GetContactsRequest(
 #     hash=-12398745604826
 # ))
 #

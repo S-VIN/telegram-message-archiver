@@ -10,11 +10,6 @@ import utils
 chat_type = utils.EnumToIntConverter()
 
 
-class MyMessage():
-    text = ''
-    author = ''
-
-
 class Singleton(type):
     _instances = {}
     def __call__(cls, *args, **kwargs):
@@ -32,44 +27,42 @@ class Db(metaclass=Singleton):
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
 
-    def get_last_message(self):
-        self.cursor.execute(
-            'SELECT messages.text, user_name FROM messages JOIN users u on u.id = messages.user_id ORDER BY messages.id DESC LIMIT 1', )
-        message_records = self.cursor.fetchall()
-        result = ''
-        for row in message_records:
-            result += row[0]
-            result += ' '
-            result += row[1]
-        return result
+    # def get_last_message(self):
+    #     self.cursor.execute(
+    #         'SELECT messages.text, username FROM messages JOIN users u on u.id = messages.user_id ORDER BY messages.id DESC LIMIT 1', )
+    #     message_records = self.cursor.fetchall()
+    #     result = ''
+    #     for row in message_records:
+    #         result += row[0]
+    #         result += ' '
+    #         result += row[1]
+    #     return result
+
 
     def add_message(self, message):
-        if type(message.peer_id) is types.PeerUser:
-            if self.is_new_user(message.peer_id):
-                self.add_user()
-
-
         insert_message = (
             message.id,
             message.text,
-            datetime.datetime.timestamp(message.date) * 1000,
-            message.peer_id.user_id,
-            # chat_type.enum_to_int(message.chat.type.value),
-            0,
-            1)
+            message.datetime,
+            message.peer_id,
+            message.chat_type)
+
         self.cursor.execute(
-            'INSERT INTO messages (id, text, datetime, user_id, chat_type, media_type) VALUES (%s,%s,%s,%s,%s,%s)',
+            'INSERT INTO messages (id, text, datetime, peer_id, chat_type) VALUES (%s,%s,%s,%s,%s)',
             insert_message)
 
-    def is_new_user(self, user):
-        self.cursor.execute('SELECT * FROM users WHERE id = (%s)', [user.id])
+
+
+
+    def is_new_user(self, user_id):
+        self.cursor.execute('SELECT * FROM users WHERE id = (%s)', [user_id])
         user_records = self.cursor.fetchall()
         if len(user_records) == 1:
             return False
         else:
             return True
 
-    def add_peer(self, peer):
+    def add_peer(self, peer): # TODO change type to my peer
         insert_message = (
             peer.id,
             peer.type.value,
@@ -79,6 +72,21 @@ class Db(metaclass=Singleton):
             'INSERT INTO peers (id, type, name) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING',
             insert_message)
 
+
+    async def get_message_by_id(self, message_id):
+        self.cursor.execute(
+            'SELECT * FROM peers WHERE id=%s', [message_id])
+        message_records = self.cursor.fetchall()
+        result = list()
+        if len(message_records) == 0:
+            return None
+        if len(message_records) != 1:
+            assert('message with same id')
+            return None
+
+        first_record = message_records[0]
+        message = telegram.Message(first_record[0], first_record[1], first_record[2], first_record[3], first_record[4])
+        return message
 
 # Peer
     async def get_peer_by_id(self, peer_id):
@@ -97,6 +105,21 @@ class Db(metaclass=Singleton):
         return peer
 
 
+    async def get_user_by_id(self, user_id):
+        self.cursor.execute(
+            'SELECT * FROM users WHERE id=%s', [user_id])
+        message_records = self.cursor.fetchall()
+        result = list()
+        if len(message_records) == 0:
+            return None
+        if len(message_records) != 1:
+            assert('user with same id')
+            return None
+
+        first_record = message_records[0]
+        user = telegram.User(first_record[0], first_record[1], first_record[2], first_record[3], first_record[4], first_record[5])
+        return user
+
 # User
     def add_user(self, user):
         insert_message = (
@@ -107,28 +130,7 @@ class Db(metaclass=Singleton):
             user.bot,
             user.contact)
         self.cursor.execute(
-            'INSERT INTO users (id, first_name, second_name, user_name, is_bot, is_in_contacts) VALUES (%s,%s,%s,%s,%s,%s)',
+            'INSERT INTO users (id, first_name, last_name, username, bot, contact) VALUES (%s,%s,%s,%s,%s,%s)',
             insert_message)
 
-    def add_unread_message(self, message):
-        try:
-            self.cursor.execute('INSERT INTO unread_messages (message_id) VALUES (%s)', [message.id])
-        except psycopg2.errors.UniqueViolation:
-            ...
-        except psycopg2.errors.ForeignKeyViolation:
-            ...
 
-    def get_unread_messages(self):
-        self.cursor.execute(
-            'SELECT m.text, user_name FROM unread_messages '
-            'JOIN messages m on m.id = unread_messages.message_id '
-            'JOIN users u on u.id = m.user_id '
-            'ORDER BY m.id ', )
-        message_records = self.cursor.fetchall()
-        result = list()
-        for row in message_records:
-            message = MyMessage()
-            message.text = row[0]
-            message.author = row[1]
-            result.append(message)
-        return result

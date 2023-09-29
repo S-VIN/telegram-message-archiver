@@ -25,19 +25,17 @@ async def get_dialogs(count=None):
             count -= 1
             if count <= 0:
                 return
-
-
         print()
-        print()
-        await sync_messages_from_dialog(dialog, 1)
+        await sync_messages_from_dialog(dialog)
 
 
 
 
-async def sync_messages_from_dialog(dialog, count=10):
+async def sync_messages_from_dialog(dialog):
     async for message in tg.client.iter_messages(dialog):
         print(message.peer_id)
         peer = telegram.Peer(0, Peer.USER, '')
+        user = telegram.User(0, '', '', '', False, False)
 
         if type(message.peer_id) is types.PeerChannel:
             peer = await db.get_peer_by_id(message.peer_id.channel_id)
@@ -52,11 +50,40 @@ async def sync_messages_from_dialog(dialog, count=10):
             print('peer was added to db: ', peer)
         else:
             print('peer was in db: ', peer)
-        count -= 1
-        if count <= 0:
-            return
 
-        # db.add_message(message)
+        print(dialog)
+        print(message)
+        db_user_id = 0
+        if type(message.peer_id) is types.PeerUser:
+            db_user_id = message.peer_id.user_id
+        elif type(message.peer_id) is types.PeerChat:
+            db_user_id = message.from_id.user_id
+        else:
+            db_message = await db.get_message_by_id(message.id)
+            if db_message is None:
+                continue
+            else:
+                db.add_message(telegram.Message(message.id, message.text, message.date, peer.id, peer.type))
+                continue
+
+        user = await db.get_user_by_id(db_user_id)
+
+        if user is None or user.id == 0:
+            tg_user = await tg.get_user_by_id(db_user_id)
+            print(tg_user)
+            db.add_user(telegram.User(
+                tg_user.users[0].id,
+                tg_user.users[0].first_name,
+                tg_user.users[0].last_name,
+                tg_user.users[0].username,
+                tg_user.users[0].bot,
+                tg_user.users[0].contact))
+
+        db_message = await db.get_message_by_id(message.id)
+        if db_message is None:
+            continue
+        else:
+            db.add_message(telegram.Message(message.id, message.text, message.date, peer.id, peer.type))
 
 
 async def main():
