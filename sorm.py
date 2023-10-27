@@ -1,21 +1,20 @@
 import psycopg2
-import datetime
-
-from telethon import types
-
-import settings
 import telegram
 import utils
+from peer import Peer
+from user import User
 
 chat_type = utils.EnumToIntConverter()
 
 
 class Singleton(type):
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+
 
 class Db(metaclass=Singleton):
 
@@ -27,32 +26,16 @@ class Db(metaclass=Singleton):
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
 
-    # def get_last_message(self):
-    #     self.cursor.execute(
-    #         'SELECT messages.text, username FROM messages JOIN users u on u.id = messages.user_id ORDER BY messages.id DESC LIMIT 1', )
-    #     message_records = self.cursor.fetchall()
-    #     result = ''
-    #     for row in message_records:
-    #         result += row[0]
-    #         result += ' '
-    #         result += row[1]
-    #     return result
-
-
     def add_message(self, message):
         insert_message = (
             message.id,
             message.text,
             message.datetime,
-            message.peer_id,
-            message.chat_type)
+            message.peer_id)
 
         self.cursor.execute(
-            'INSERT INTO messages (id, text, datetime, peer_id, chat_type) VALUES (%s,%s,%s,%s,%s)',
+            'INSERT INTO messages (id, text, datetime, peer_id) VALUES (%s,%s,%s,%s)',
             insert_message)
-
-
-
 
     def is_new_user(self, user_id):
         self.cursor.execute('SELECT * FROM users WHERE id = (%s)', [user_id])
@@ -62,16 +45,15 @@ class Db(metaclass=Singleton):
         else:
             return True
 
-    def add_peer(self, peer): # TODO change type to my peer
+    def add_peer(self, peer):
         insert_message = (
             peer.id,
-            peer.type.value,
+            peer.type,
             peer.name
         )
         self.cursor.execute(
             'INSERT INTO peers (id, type, name) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING',
             insert_message)
-
 
     async def get_message_by_id(self, message_id):
         self.cursor.execute(
@@ -81,11 +63,11 @@ class Db(metaclass=Singleton):
         if len(message_records) == 0:
             return None
         if len(message_records) != 1:
-            assert('message with same id')
+            assert 'message with same id'
             return None
 
         first_record = message_records[0]
-        message = telegram.Message(first_record[0], first_record[1], first_record[2], first_record[3], first_record[4])
+        message = telegram.Message(first_record[0], first_record[1], first_record[2], first_record[3])
         return message
 
 # Peer
@@ -97,13 +79,12 @@ class Db(metaclass=Singleton):
         if len(message_records) == 0:
             return None
         if len(message_records) != 1:
-            assert('peers with same id')
+            assert 'peers with same id'
             return None
 
         first_record = message_records[0]
-        peer = telegram.Peer(first_record[0], first_record[1], first_record[2])
+        peer = Peer(first_record[0], first_record[1], first_record[2])
         return peer
-
 
     async def get_user_by_id(self, user_id):
         self.cursor.execute(
@@ -113,11 +94,21 @@ class Db(metaclass=Singleton):
         if len(message_records) == 0:
             return None
         if len(message_records) != 1:
-            assert('user with same id')
+            assert 'user with same id'
             return None
 
-        first_record = message_records[0]
-        user = telegram.User(first_record[0], first_record[1], first_record[2], first_record[3], first_record[4], first_record[5])
+        first_record = list(message_records[0])
+        first_record[1] = '' if first_record[1] is None else first_record[1]
+        first_record[2] = '' if first_record[2] is None else first_record[2]
+        first_record[3] = '' if first_record[3] is None else first_record[3]
+
+        user = User()
+        user.id = first_record[0]
+        user.first_name = first_record[1]
+        user.last_name = first_record[2]
+        user.username = first_record[3]
+        user.bot = first_record[4]
+        user.contact = first_record[5]
         return user
 
 # User

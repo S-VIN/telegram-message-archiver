@@ -1,5 +1,5 @@
 
-class EnumToIntConverter():
+class EnumToIntConverter:
     _enum_pairs_ = list()
 
     def __int__(self, input_enum):
@@ -11,3 +11,11 @@ class EnumToIntConverter():
             cls._enum_pairs_.append(input_enum_string)
         return cls._enum_pairs_.index(input_enum_string)
 
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]

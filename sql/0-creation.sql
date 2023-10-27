@@ -1,6 +1,6 @@
 DO $$
 BEGIN
-    -- CREATE DATABASE archiever_db;
+    -- CREATE DATABASE archiver_db;
 
     CREATE TABLE IF NOT EXISTS users (
       id BIGINT PRIMARY KEY,
@@ -11,23 +11,21 @@ BEGIN
       contact BOOL DEFAULT TRUE
     );
 
-    CREATE TABLE IF NOT EXISTS messages (
-     id BIGINT PRIMARY KEY,
-     text TEXT,
-     datetime TIMESTAMP NOT NULL,
-     peer_id BIGINT REFERENCES peers(id),
-     chat_type INTEGER NOT NULL
-    );
-
     CREATE TABLE IF NOT EXISTS peers (
      id BIGINT PRIMARY KEY,
      type INT NOT NULL,
      name TEXT NOT NULL
     );
 
-    CREATE TABLE  IF NOT EXISTS unread_messages (
-        message_id BIGINT REFERENCES messages(id) UNIQUE
+    CREATE TABLE IF NOT EXISTS messages (
+     id BIGINT PRIMARY KEY,
+     text TEXT,
+     datetime TIMESTAMP NOT NULL,
+     peer_id BIGINT REFERENCES peers(id)
+--      media_name TEXT DEFAULT NULL
     );
+
+
 
     CREATE TABLE IF NOT EXISTS last_used_script (
         onerow_id bool PRIMARY KEY DEFAULT TRUE,

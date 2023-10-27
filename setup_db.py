@@ -1,7 +1,6 @@
 import psycopg2
 import glob
 import os
-import itertools
 
 connection = psycopg2.connect(
     database="telegram_my_messages", user='postgres', password='3228', host='127.0.0.1', port='5432'
@@ -9,6 +8,7 @@ connection = psycopg2.connect(
 
 connection.autocommit = True
 cursor = connection.cursor()
+
 
 def get_last_used_script():
     cursor.execute('SELECT script_name FROM last_used_script')
@@ -36,6 +36,7 @@ def execute_script(filename):
         text = f.name
         command = open(f.name, "r").read()
         cursor.execute(command)
+
 
 sorted_scripts = sql_sort(glob.glob('sql/*.sql'))
 last_script = get_number_of_script(get_last_used_script())
