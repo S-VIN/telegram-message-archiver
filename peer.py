@@ -3,12 +3,12 @@ from telethon import types
 
 
 class PeerType(Enum):
-    def __str__(self):
-        return str(self.value)
-
     USER = 1
     CHANNEL = 2
     CHAT = 3
+
+    def __str__(self):
+        return str(self.value)
 
 
 class Peer:
@@ -31,7 +31,7 @@ class Peer:
             self.id = tg_peer.chat_id
 
     def __str__(self):
-        return str('Peer(' + str(self.id) + ', ' + str(self.type) + ', ' + self.name + ')')
+        return str('Peer(' + str(self.id) + ', ' + str(self.type.name) + ', ' + self.name + ')')
 
     # @staticmethod
     # def convert(tg_peer):

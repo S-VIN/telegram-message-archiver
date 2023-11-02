@@ -9,6 +9,7 @@ class Message:
         self.text = tg_message.text
         self.datetime = tg_message.date
         self.peer_id = Peer(tg_message.peer_id).id
+        self.from_user_id = tg_message.from_id
 
     def __str__(self):
-        return str('Message(' + str(self.id) + ', ' + str(self.text) + ', ' + self.datetime + ')')
+        return str('Message(' + str(self.id) + ', ' + str(self.text) + ', ' + self.datetime + ', ' + self.from_user_id + ')')

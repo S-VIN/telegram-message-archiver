@@ -48,7 +48,7 @@ class Db(metaclass=Singleton):
     def add_peer(self, peer):
         insert_message = (
             peer.id,
-            peer.type,
+            peer.type.value,
             peer.name
         )
         self.cursor.execute(
@@ -71,7 +71,7 @@ class Db(metaclass=Singleton):
         return message
 
 # Peer
-    async def get_peer_by_id(self, peer_id):
+    def get_peer_by_id(self, peer_id):
         self.cursor.execute(
             'SELECT * FROM peers WHERE id=%s', [peer_id])
         message_records = self.cursor.fetchall()
@@ -83,10 +83,17 @@ class Db(metaclass=Singleton):
             return None
 
         first_record = message_records[0]
-        peer = Peer(first_record[0], first_record[1], first_record[2])
+        peer = Peer()
+        peer.id = first_record[0]
+        peer.type = first_record[1]
+        peer.name = first_record[2]
         return peer
 
-    async def get_user_by_id(self, user_id):
+        async def is_peer_in_db(self, peer_id):
+            peer = self.get_peer_by_id(peer_id)
+            return peer is not None
+
+    def get_user_by_id(self, user_id):
         self.cursor.execute(
             'SELECT * FROM users WHERE id=%s', [user_id])
         message_records = self.cursor.fetchall()

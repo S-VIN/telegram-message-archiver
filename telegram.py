@@ -12,24 +12,24 @@ class Telegram(metaclass=utils.Singleton):
 # Плохой способ вызывать эту функцию каждый раз, как приходит сообщение.
 # Мы дудосим телеграм. Нужно получить сначала все пиры через get_dialogs,
 # а потом уже тех, которых нет (должны быть все, кроме удаленных) смотреть через это.
-    async def get_peer_by_id(self, peer_id):
-        if type(peer_id) is types.PeerChannel:
+    async def get_peer_by_tg_peer(self, tg_peer):
+        if type(tg_peer) is types.PeerChannel:
             result = await self.client(functions.channels.GetFullChannelRequest(
-                channel=peer_id
+                channel=tg_peer
             ))
-            return Peer(peer_id)
+            return Peer(tg_peer)
 
-        if type(peer_id) is types.PeerUser:
-            result = await self.client(functions.users.GetFullUserRequest(peer_id))
+        if type(tg_peer) is types.PeerUser:
+            result = await self.client(functions.users.GetFullUserRequest(tg_peer))
             print(result)
-            return Peer(peer_id)
+            return Peer(tg_peer)
 
-        if type(peer_id) is types.PeerChat:
+        if type(tg_peer) is types.PeerChat:
             result = await self.client(functions.messages.GetPeerDialogsRequest(
-                peers=[peer_id]
+                peers=[tg_peer]
             ))
             print(result.chats[0].title)
-            return Peer(peer_id)
+            return Peer(tg_peer)
 
     async def get_user_by_id(self, user_id):
         user = await self.client(functions.users.GetFullUserRequest(user_id))

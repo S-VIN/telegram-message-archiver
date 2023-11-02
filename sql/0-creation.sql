@@ -21,7 +21,8 @@ BEGIN
      id BIGINT PRIMARY KEY,
      text TEXT,
      datetime TIMESTAMP NOT NULL,
-     peer_id BIGINT REFERENCES peers(id)
+     peer_id BIGINT REFERENCES peers(id),
+     from_user_id BIGINT REFERENCES users(id)
 --      media_name TEXT DEFAULT NULL
     );
 
