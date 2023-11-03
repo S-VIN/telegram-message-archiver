@@ -1,5 +1,5 @@
 class User:
-    def __init__(self, tg_user=None):
+    def __init__(self, tg_user=None): # TODO инициализацию привести к static
         if tg_user is None:
             return
         self.id = tg_user.users[0].id

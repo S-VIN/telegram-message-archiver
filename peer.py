@@ -16,7 +16,7 @@ class Peer:
     id = 0
     name = ''
 
-    def __init__(self, tg_peer=None, name=''):
+    def __init__(self, tg_peer=None, name=''): # TODO инициализацию привести к static
         if tg_peer is None:
             return
         self.name = name
@@ -25,7 +25,7 @@ class Peer:
             self.id = tg_peer.channel_id
         if type(tg_peer) is types.PeerUser:
             self.type = PeerType.USER
-            self.type = tg_peer.user_id
+            self.id = tg_peer.user_id
         if type(tg_peer) is types.PeerChat:
             self.type = PeerType.CHAT
             self.id = tg_peer.chat_id

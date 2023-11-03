@@ -3,6 +3,7 @@ import telegram
 import utils
 from peer import Peer
 from user import User
+from message import Message
 
 chat_type = utils.EnumToIntConverter()
 
@@ -55,9 +56,9 @@ class Db(metaclass=Singleton):
             'INSERT INTO peers (id, type, name) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING',
             insert_message)
 
-    async def get_message_by_id(self, message_id):
+    def get_message_by_id(self, message_id):
         self.cursor.execute(
-            'SELECT * FROM peers WHERE id=%s', [message_id])
+            'SELECT * FROM messages WHERE id=%s', [message_id])
         message_records = self.cursor.fetchall()
         result = list()
         if len(message_records) == 0:
@@ -67,7 +68,7 @@ class Db(metaclass=Singleton):
             return None
 
         first_record = message_records[0]
-        message = telegram.Message(first_record[0], first_record[1], first_record[2], first_record[3])
+        message = Message.from_args(first_record[0], first_record[1], first_record[2], first_record[3], first_record[4])
         return message
 
 # Peer
