@@ -1,4 +1,4 @@
-from peer import Peer
+from peer import Peer, PeerType
 
 
 class Message:
@@ -8,9 +8,9 @@ class Message:
         message.id = tg_message.id
         message.text = tg_message.text
         message.datetime = tg_message.date
-        peer = Peer(tg_message.peer_id)
+        peer = Peer.from_tg_peer(tg_message.peer_id)
         message.peer_id = peer.id
-        if peer.type == Peer.type.USER:
+        if peer.type == PeerType.USER:
             message.from_user_id = peer.id
         else:
             message.from_user_id = tg_message.from_id
@@ -33,4 +33,5 @@ class Message:
             str(self.id) + ', ' +
             str(self.text) + ', ' +
             str(self.datetime) + ', ' +
-            str(Peer(self.from_user_id)) + ')') # TODO тут сделать вывод и не преобразовывать к Peer
+            str(self.from_user_id) + ', ' +
+            str(self.peer_id) + ')')

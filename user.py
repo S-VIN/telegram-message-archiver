@@ -1,10 +1,11 @@
 class User:
-    def __init__(self, tg_user=None): # TODO инициализацию привести к static
-        if tg_user is None:
-            return
-        self.id = tg_user.users[0].id
-        self.first_name = tg_user.users[0].first_name
-        self.last_name = tg_user.users[0].last_name
-        self.username = tg_user.users[0].username
-        self.bot = tg_user.users[0].bot
-        self.contact = tg_user.users[0].contact
+    @staticmethod
+    def from_tg_user(tg_user):
+        result = User()
+        result.id = tg_user.users[0].id
+        result.first_name = tg_user.users[0].first_name
+        result.last_name = tg_user.users[0].last_name
+        result.username = tg_user.users[0].username
+        result.bot = tg_user.users[0].bot
+        result.contact = tg_user.users[0].contact
+        return result

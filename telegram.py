@@ -17,19 +17,19 @@ class Telegram(metaclass=utils.Singleton):
             result = await self.client(functions.channels.GetFullChannelRequest(
                 channel=tg_peer
             ))
-            return Peer(tg_peer)
+            return Peer.from_tg_peer(tg_peer)
 
         if type(tg_peer) is types.PeerUser:
             result = await self.client(functions.users.GetFullUserRequest(tg_peer))
             print(result)
-            return Peer(tg_peer)
+            return Peer.from_tg_peer(tg_peer)
 
         if type(tg_peer) is types.PeerChat:
             result = await self.client(functions.messages.GetPeerDialogsRequest(
                 peers=[tg_peer]
             ))
             print(result.chats[0].title)
-            return Peer(tg_peer)
+            return Peer.from_tg_peer(tg_peer)
 
     async def get_user_by_id(self, user_id):
         user = await self.client(functions.users.GetFullUserRequest(user_id))

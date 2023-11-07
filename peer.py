@@ -12,26 +12,32 @@ class PeerType(Enum):
 
 
 class Peer:
-    type = PeerType.USER
-    id = 0
-    name = ''
 
-    def __init__(self, tg_peer=None, name=''): # TODO инициализацию привести к static
+    @staticmethod
+    def from_args(id, type, name=''):
+        peer = Peer()
+        peer.id = id
+        peer.type = type
+        peer.name = name
+        return peer
+
+    @staticmethod
+    def from_tg_peer(tg_peer, name=''):
         if tg_peer is None:
             return
-        self.name = name
+        peer = Peer()
+        peer.name = name
         if type(tg_peer) is types.PeerChannel:
-            self.type = PeerType.CHANNEL
-            self.id = tg_peer.channel_id
+            peer.type = PeerType.CHANNEL
+            peer.id = tg_peer.channel_id
         if type(tg_peer) is types.PeerUser:
-            self.type = PeerType.USER
-            self.id = tg_peer.user_id
+            peer.type = PeerType.USER
+            peer.id = tg_peer.user_id
         if type(tg_peer) is types.PeerChat:
-            self.type = PeerType.CHAT
-            self.id = tg_peer.chat_id
+            peer.type = PeerType.CHAT
+            peer.id = tg_peer.chat_id
+        return peer
 
     def __str__(self):
         return str('Peer(' + str(self.id) + ', ' + str(self.type.name) + ', ' + self.name + ')')
 
-    # @staticmethod
-    # def convert(tg_peer):
