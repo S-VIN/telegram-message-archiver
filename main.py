@@ -45,25 +45,29 @@ async def process_user_by_id(user_id):
 
 async def process_tg_message(tg_message):
     db_message = db.get_message_by_id(tg_message.id)
-    if db_message is not None:
-        return
-    else:
+    if db_message is None:
         message = Message.from_tg_message(tg_message)
         db.add_message(message)
-        await process_photo_from_message(tg_message)
         print('message was add to db: ', Message.from_tg_message(tg_message))
-        return message
+        print(tg_message)
+    await process_photo_from_message(tg_message)
 
 
-async def process_photo_from_message(tg_message): #TODO не скачивать миниатюры и подобный мусор
-    if tg_message.photo:
-        filename = './media_from_dialogs/' + str(tg_message.date.strftime('%Y-%m-%d')) + '_' + str(tg_message.id)
+async def process_photo_from_message(tg_message):
+    if tg_message.photo and type(tg_message.media) == types.MessageMediaPhoto:
+        filename = str(tg_message.date.strftime('%Y-%m-%d')) + '_' + str(tg_message.id)
+        filepath = settings.PATH_FOR_MEDIA + str(Peer.from_tg_peer(tg_message.peer_id).id) + '/'
+        filename_with_path = filepath + filename
 
-        if (filename + '.jpg') in os.listdir('./media_from_dialogs/'):  #TODO не работает, скачивает по второму разу
-            print('file was in filesystem: ', filename)
-            return
+        try:
+            if (filename + '.jpg') in os.listdir(filepath):
+                print('file was in filesystem: ', filename)
+                return
+        except FileNotFoundError:
+            pass
+            # Игнорируем исключение, потому что после скачивания файла tg.client.download_media заведёт директорию
 
-        path = await tg.client.download_media(tg_message.media, filename)
+        path = await tg.client.download_media(tg_message.media, filename_with_path)
         print('file saved to', path, filename)  # printed after download is done
 
 
@@ -74,10 +78,14 @@ async def sync_messages_from_dialog(dialog):
         peer = process_tg_peer(tg_message.peer_id)
 
         # добавляем если надо user в db
-        if peer.type != PeerType.USER:
+        # В чатах есть сообщения от юзеров, которых тоже надо добавить
+        if peer.type == PeerType.CHAT:
             user = await process_user_by_id(Peer.from_tg_peer(tg_message.from_id).id)
-        else:
+        # В ЛС с людьми, нужно добавить человека по пиру
+        if peer.type == PeerType.USER:
             user = await process_user_by_id(peer.id)
+        # В каналах есть сообщения от канала, их не надо добавлять
+        # if peer.type == PeerType.CHANNEL:
 
         # добавляем если надо message в db
         await process_tg_message(tg_message)

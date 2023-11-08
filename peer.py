@@ -30,12 +30,15 @@ class Peer:
         if type(tg_peer) is types.PeerChannel:
             peer.type = PeerType.CHANNEL
             peer.id = tg_peer.channel_id
+            peer.name = 'channel '
         if type(tg_peer) is types.PeerUser:
             peer.type = PeerType.USER
             peer.id = tg_peer.user_id
+            peer.name = 'user '
         if type(tg_peer) is types.PeerChat:
             peer.type = PeerType.CHAT
             peer.id = tg_peer.chat_id
+            peer.name = 'chat '
         return peer
 
     def __str__(self):
