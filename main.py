@@ -51,6 +51,7 @@ async def process_tg_message(tg_message):
         print('message was add to db: ', Message.from_tg_message(tg_message))
         print(tg_message)
     await process_photo_from_message(tg_message)
+    await process_document_from_message(tg_message)
 
 
 async def process_photo_from_message(tg_message):
@@ -69,6 +70,27 @@ async def process_photo_from_message(tg_message):
 
         path = await tg.client.download_media(tg_message.media, filename_with_path)
         print('file saved to', path, filename)  # printed after download is done
+
+
+async def process_document_from_message(tg_message):
+    print(tg_message)
+    if tg_message.media and type(tg_message.media) == types.MessageMediaDocument and tg_message.media.document is not None:
+        filename = str(tg_message.date.strftime('%Y-%m-%d')) + '_' + str(tg_message.id) + '_' + tg_message.media.document.attributes[0].file_name
+        filepath = settings.PATH_FOR_MEDIA + str(Peer.from_tg_peer(tg_message.peer_id).id) + '/'
+        filename_with_path = filepath + filename
+
+        try:
+            if (filename) in os.listdir(filepath):
+                print('file was in filesystem: ', filename)
+                return
+        except FileNotFoundError:
+            pass
+            # Игнорируем исключение, потому что после скачивания файла tg.client.download_media заведёт директорию
+
+        path = await tg.client.download_media(tg_message.media, filename_with_path)
+        print('file saved to', path, filename)  # printed after download is done
+
+
 
 
 
