@@ -1,20 +1,20 @@
 import psycopg2
 import telegram
-import utils
 from peer import Peer
 from user import User
 from message import Message
+from utils import Singleton, EnumToIntConverter
 
-chat_type = utils.EnumToIntConverter()
+chat_type = EnumToIntConverter()
 
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+# class Singleton(type):
+#     _instances = {}
+#
+#     def __call__(cls, *args, **kwargs):
+#         if cls not in cls._instances:
+#             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+#         return cls._instances[cls]
 
 
 class Db(metaclass=Singleton):
@@ -32,10 +32,11 @@ class Db(metaclass=Singleton):
             message.id,
             message.text,
             message.datetime,
-            message.peer_id)
+            message.peer_id,
+            message.type.value)
 
         self.cursor.execute(
-            'INSERT INTO messages (id, text, datetime, peer_id) VALUES (%s,%s,%s,%s)',
+            'INSERT INTO messages (id, text, datetime, peer_id, type) VALUES (%s,%s,%s,%s,%s)',
             insert_message)
 
     def is_new_user(self, user_id):
@@ -68,7 +69,7 @@ class Db(metaclass=Singleton):
             return None
 
         first_record = message_records[0]
-        message = Message.from_args(first_record[0], first_record[1], first_record[2], first_record[3], first_record[4])
+        message = Message.from_args(first_record[0], first_record[1], first_record[2], first_record[3], first_record[4], first_record[5])
         return message
 
 # Peer

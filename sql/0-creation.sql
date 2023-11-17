@@ -22,16 +22,9 @@ BEGIN
      text TEXT,
      datetime TIMESTAMP NOT NULL,
      peer_id BIGINT REFERENCES peers(id),
-     from_user_id BIGINT REFERENCES users(id)
+     from_user_id BIGINT REFERENCES users(id),
+     type BIGINT
 --      media_name TEXT DEFAULT NULL
-    );
-
-
-
-    CREATE TABLE IF NOT EXISTS last_used_script (
-        onerow_id bool PRIMARY KEY DEFAULT TRUE,
-        script_name TEXT,
-        CONSTRAINT onerow_uni CHECK (onerow_id)
     );
 END;
 $$;

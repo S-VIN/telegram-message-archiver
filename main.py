@@ -4,9 +4,9 @@ import telegram
 from telethon import types
 from user import User
 from peer import Peer, PeerType
-from message import Message
+from message import Message, MessageType
+from utils import FileSystem
 import os
-
 
 db = sorm.Db(settings.DB_NAME, settings.USER, settings.PASSWORD, settings.HOST, settings.PORT)
 tg = telegram.Telegram('lib_session', settings.API_ID, settings.API_HASH)
@@ -44,6 +44,7 @@ async def process_user_by_id(user_id):
     return user
 
 async def process_tg_message(tg_message):
+    print(tg_message)
     db_message = db.get_message_by_id(tg_message.id)
     if db_message is None:
         message = Message.from_tg_message(tg_message)
@@ -73,14 +74,14 @@ async def process_photo_from_message(tg_message):
 
 
 async def process_document_from_message(tg_message):
-    print(tg_message)
+    message = Message.from_tg_message(tg_message)
     if tg_message.media and type(tg_message.media) == types.MessageMediaDocument and tg_message.media.document is not None:
-        filename = str(tg_message.date.strftime('%Y-%m-%d')) + '_' + str(tg_message.id) + '_' + tg_message.media.document.attributes[0].file_name
+        filename = str(tg_message.date.strftime('%Y-%m-%d')) + '_' + str(tg_message.id) + '_' + str(message.type)
         filepath = settings.PATH_FOR_MEDIA + str(Peer.from_tg_peer(tg_message.peer_id).id) + '/'
         filename_with_path = filepath + filename
 
         try:
-            if (filename) in os.listdir(filepath):
+            if FileSystem.is_file_in_filesystem(filename, filepath):
                 print('file was in filesystem: ', filename)
                 return
         except FileNotFoundError:
@@ -89,8 +90,6 @@ async def process_document_from_message(tg_message):
 
         path = await tg.client.download_media(tg_message.media, filename_with_path)
         print('file saved to', path, filename)  # printed after download is done
-
-
 
 
 
